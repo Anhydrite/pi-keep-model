@@ -1,0 +1,19 @@
+{
+  "name": "pi-keep-model",
+  "version": "1.0.0",
+  "description": "Pi extension — keeps the active model across /new sessions so you don't have to re-select it every time",
+  "keywords": ["pi-package", "pi-extension", "model", "session", "persist"],
+  "license": "MIT",
+  "author": "Anhydrite",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anhydrite/pi-keep-model.git"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": ["./extensions/keep-model.ts"]
+  }
+}
