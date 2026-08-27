@@ -1,7 +1,7 @@
 {
   "name": "pi-keep-model",
-  "version": "1.0.0",
-  "description": "Pi extension — keeps the active model across /new sessions so you don't have to re-select it every time",
+  "version": "1.1.0",
+  "description": "Pi extension — keeps the active model across /new sessions and supports an explicit model pin (~/.pi/agent/model-pin.json)",
   "keywords": ["pi-package", "pi-extension", "model", "session", "persist"],
   "license": "MIT",
   "author": "Anhydrite",

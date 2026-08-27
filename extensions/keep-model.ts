@@ -5,23 +5,24 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 
 const STATE_DIR = join(homedir(), ".pi", "agent");
-const STATE_FILE = join(STATE_DIR, "preserved-model.json");
+const LAST_FILE = join(STATE_DIR, "preserved-model.json");
+const PIN_FILE = join(STATE_DIR, "model-pin.json");
 
 type ModelInfo = { provider: string; modelId: string };
 
-async function saveModelInfo(provider: string, modelId: string): Promise<void> {
+async function saveJson(file: string, info: ModelInfo): Promise<void> {
   try {
     await mkdir(STATE_DIR, { recursive: true });
-    await writeFile(STATE_FILE, JSON.stringify({ provider, modelId } as ModelInfo), "utf-8");
+    await writeFile(file, JSON.stringify(info), "utf-8");
   } catch {
     // Non-critical; ignore silently
   }
 }
 
-async function loadModelInfo(): Promise<ModelInfo | null> {
-  if (!existsSync(STATE_FILE)) return null;
+async function loadJson(file: string): Promise<ModelInfo | null> {
+  if (!existsSync(file)) return null;
   try {
-    const raw = await readFile(STATE_FILE, "utf-8");
+    const raw = await readFile(file, "utf-8");
     const parsed = JSON.parse(raw) as ModelInfo;
     if (!parsed.provider || !parsed.modelId) return null;
     return parsed;
@@ -30,27 +31,47 @@ async function loadModelInfo(): Promise<ModelInfo | null> {
   }
 }
 
+function modelsEqual(a: ModelInfo, b: ModelInfo): boolean {
+  return a.provider === b.provider && a.modelId === b.modelId;
+}
+
 export default function (pi: ExtensionAPI) {
-  // 1. Keep the saved model up to date whenever the user changes model
+  // Remember the last model selected by the user (/model, Ctrl+P cycle) so it
+  // survives restarts and /new. Only user-initiated selections are recorded
+  // (source "set" / "cycle"); session restores are handled below.
   pi.on("model_select", async (event) => {
     if (!event.model?.provider || !event.model?.id) return;
-    await saveModelInfo(event.model.provider, event.model.id);
+    await saveJson(LAST_FILE, { provider: event.model.provider, modelId: event.model.id });
   });
 
-  // 2. On /new (session_start reason "new"), restore the last active model
+  // On /new, restore the LAST SELECTED model so a fresh session keeps the
+  // model you were using. Falls back to the explicit pin (model-pin.json),
+  // then leaves pi's default untouched.
   pi.on("session_start", async (event, ctx) => {
     if (event.reason !== "new") return;
 
-    const saved = await loadModelInfo();
-    if (!saved) return;
+    const candidates: Array<ModelInfo | null> = [
+      await loadJson(LAST_FILE), // last selected model → takes priority
+      await loadJson(PIN_FILE),  // explicit pin → fallback
+    ];
 
-    try {
-      const model = ctx.modelRegistry?.find?.(saved.provider, saved.modelId);
-      if (model) {
-        await pi.setModel(model);
+    for (const info of candidates) {
+      if (!info) continue;
+      try {
+        const model = ctx.modelRegistry?.find?.(info.provider, info.modelId);
+        if (model) {
+          // Avoid a pointless setModel round-trip when the new session already
+          // starts on the desired model.
+          const current = ctx.model;
+          if (current && modelsEqual({ provider: current.provider, modelId: current.id }, info)) {
+            return;
+          }
+          await pi.setModel(model);
+          return;
+        }
+      } catch {
+        // Model unavailable or no API key — try the next candidate.
       }
-    } catch {
-      // Model no longer available — keep the default
     }
   });
 }
