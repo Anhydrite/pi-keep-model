@@ -1,6 +1,6 @@
 {
   "name": "pi-keep-model",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Pi extension — keeps the active model across /new sessions, supports an explicit model pin (~/.pi/agent/model-pin.json), and syncs the selected model as pi's startup default",
   "keywords": ["pi-package", "pi-extension", "model", "session", "persist"],
   "license": "MIT",

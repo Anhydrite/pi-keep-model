@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-07
+
+### Changed
+
+- The last selected model is now forced on **every** session start (`startup`,
+  `resume`, `/new`, `fork`), not only `/new`. Pi restores the model recorded
+  inside an old session branch on resume, which could differ from the model the
+  user last chose; the extension now overrides it so a fresh `pi` process boots
+  on the model the user actually used last.
+
+### Fixed
+
+- On exit, the active model is now also written to `preserved-model.json`
+  (previously only the startup default in `settings.json` was updated), keeping
+  both files consistent.
+- Placeholder model identities (`"unknown"`) are ignored everywhere, so a boot
+  without a resolvable model can no longer overwrite the saved default with
+  `defaultProvider: "unknown"` / `defaultModel: "unknown"`.
+
 ## [1.2.0] - 2026-09-07
 
 ### Added
@@ -54,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   last selected provider/model to `~/.pi/agent/preserved-model.json` and
   restoring it on each new session.
 
-[Unreleased]: https://github.com/Anhydrite/pi-keep-model/compare/3552f04...HEAD
+[Unreleased]: https://github.com/Anhydrite/pi-keep-model/compare/9982ebf...HEAD
+[1.3.0]: https://github.com/Anhydrite/pi-keep-model/compare/07d2477...9982ebf
 [1.2.0]: https://github.com/Anhydrite/pi-keep-model/compare/e2fc39b...3552f04
 [1.1.0]: https://github.com/Anhydrite/pi-keep-model/compare/772fb7a...e2fc39b
 [1.0.0]: https://github.com/Anhydrite/pi-keep-model/commit/772fb7a

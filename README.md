@@ -7,7 +7,7 @@ No more manually re-selecting your model every time you start a fresh session or
 ## How it works
 
 1. Whenever you change the model (via `/model`, `Ctrl+P`, or the model selector), the extension saves the provider and model ID to `~/.pi/agent/preserved-model.json` **and** updates the startup default (`defaultProvider` / `defaultModel`) in `~/.pi/agent/settings.json`.
-2. When you run `/new`, the extension restores that model automatically.
+2. At **every** session start (fresh launch, resume, `/new`, fork), the extension forces the last selected model — so even if an old session recorded a different model, pi boots on the model you used last.
 3. When you **quit** pi, the active model is persisted as the startup default, so the next `pi` process boots on the model you were using.
 
 **Priority order:**
