@@ -1,13 +1,14 @@
 # pi-keep-model
 
-A [pi](https://pi.dev) extension that **keeps your active model across `/new` sessions**.
+A [pi](https://pi.dev) extension that **keeps your active model** — across `/new` sessions **and** across restarts (as pi's startup default).
 
-No more manually re-selecting your model every time you start a fresh session.
+No more manually re-selecting your model every time you start a fresh session or relaunch pi.
 
 ## How it works
 
-1. Whenever you change the model (via `/model`, `Ctrl+P`, or the model selector), the extension saves the provider and model ID to `~/.pi/agent/preserved-model.json`.
+1. Whenever you change the model (via `/model`, `Ctrl+P`, or the model selector), the extension saves the provider and model ID to `~/.pi/agent/preserved-model.json` **and** updates the startup default (`defaultProvider` / `defaultModel`) in `~/.pi/agent/settings.json`.
 2. When you run `/new`, the extension restores that model automatically.
+3. When you **quit** pi, the active model is persisted as the startup default, so the next `pi` process boots on the model you were using.
 
 **Priority order:**
 
@@ -20,6 +21,8 @@ No more manually re-selecting your model every time you start a fresh session.
 ```
 
 If nothing is saved and no pin is configured, pi keeps its default behavior.
+
+> **Note:** Session restores (`/resume`, startup on an existing session) are excluded from the startup-default sync, so resuming an old session does not overwrite the default you chose.
 
 ## Install
 
@@ -40,7 +43,12 @@ Nothing to do — it just works.
 ## Files
 
 - Saved state: `~/.pi/agent/preserved-model.json`
+- Startup default (synced): `~/.pi/agent/settings.json` → `defaultProvider` / `defaultModel`
 - Optional pin: `~/.pi/agent/model-pin.json`
+
+## Disabling the startup-default sync
+
+Set `SYNC_STARTUP_DEFAULT` to `false` at the top of `extensions/keep-model.ts` to keep the model across `/new` sessions only, without touching `settings.json`.
 
 ## License
 
